@@ -1,0 +1,32 @@
+{
+    "name": "websocket-server",
+    "description": "A Populous: Reincarnated matchmaker IRC socket to websocket server",
+    "version": "1.0.0",
+    "author": "Rickard Lundén (https://github.com/rlunden) <ri.lunden@gmail.com>",
+    "contributors": [
+        "Rickard Lundén <ri.lunden@gmail.com>"
+    ],
+    "homepage": "http://www.popre.net",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/PopRe/websocket-server.git"
+    },
+    "keywords": [
+        "populous",
+        "matchmaker",
+        "socket",
+        "irc",
+        "websocket",
+        "server"
+    ],
+    "main": "server.js",
+    "dependencies": {
+        "body-parser": "^1.17.1",
+        "cors": "^2.8.3",
+        "express": "^4.15.2",
+        "express-useragent": "^1.0.7",
+        "irc": "^0.5.2",
+        "socket.io": "^1.7.3"
+    }
+}
