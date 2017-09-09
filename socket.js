@@ -29,6 +29,10 @@ module.exports = function(io) {
 
             irc_client.addListener('error', function(error) {
                 socket.emit('irc_error');
+                irc_client.disconnect('', function() {
+                    console.log('Disconnected IRC client because of an error');
+                });
+                socket.disconnect();
             });
         });
 
