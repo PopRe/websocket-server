@@ -3,17 +3,31 @@
  */
 'use strict';
 
+
 var config = require('./config/general');
 
 var path = require('path');
 global.appRoot = path.resolve(__dirname);
 
-var express = require('express');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http, {
+var fs = require('fs');
+var net = require('net');
+var http = require('http');
+var https = require('https');
+
+var baseAddress = config.server_port;
+var redirectAddress = 9001;
+var httpsAddress = 9002;
+var httpsOptions = {
+    key: fs.readFileSync('./encryption/ts.popre.net-key.pem'),
+    cert: fs.readFileSync('./encryption/ts.popre.net-crt.pem')
+};
+
+
+var app = require('express')();
+var io = require('socket.io')(https, {
     transports: ['websocket', 'xhr-polling']
 });
+
 
 // Setup express
 require('./config/express')(app);
@@ -26,11 +40,31 @@ app.get('/', function(request, response) {
     response.send('Nothing to see here')
 });
 
-// Start server
-if(!module.parent) {
-    http.listen(config.server_port, function() {
-        console.log('Express server listening on %d, in %s mode', config.server_port, app.get('env'));
+
+function tcpConnection(conn) {
+    conn.once('data', function (buf) {
+        // A TLS handshake record starts with byte 22.
+        var address = (buf[0] === 22) ? httpsAddress : redirectAddress;
+        var proxy = net.createConnection(address, function () {
+            proxy.write(buf);
+            conn.pipe(proxy).pipe(conn);
+        });
     });
 }
 
+function httpConnection(req, res) {
+		var host = req.headers['host'];
+		res.writeHead(301, { "Location": "https://ts.popre.net:9000"});
+		res.end();
+	}
+
+
+// Start server
+if(!module.parent) {
+	net.createServer(tcpConnection).listen(baseAddress);
+	http.createServer(httpConnection,app).listen(redirectAddress);
+	https.createServer(httpsOptions,app).listen(httpsAddress, function() {
+        console.log('Express server listening on %d, in %s mode', config.server_port, app.get('env'));
+    });	
+}
 module.exports = app;
