@@ -22,11 +22,14 @@ var httpsOptions = {
     cert: fs.readFileSync('./encryption/ts.popre.net-crt.pem')
 };
 
-
 var app = require('express')();
-var io = require('socket.io')(https, {
-    transports: ['websocket', 'xhr-polling']
-});
+
+var httpsServer = https.createServer(httpsOptions,app);
+
+
+var io = require('socket.io').listen(httpsServer,{secure: true});
+io.set("transports", ["xhr-polling","websocket"]);
+
 
 
 // Setup express
@@ -38,6 +41,12 @@ require('./socket')(io);
 // Respond on a GET request
 app.get('/', function(request, response) {
     response.send('Nothing to see here')
+});
+
+app.use(function(request, response, next) {
+  response.header("Access-Control-Allow-Origin", "*");
+  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
 });
 
 
@@ -63,7 +72,7 @@ function httpConnection(req, res) {
 if(!module.parent) {
 	net.createServer(tcpConnection).listen(baseAddress);
 	http.createServer(httpConnection,app).listen(redirectAddress);
-	https.createServer(httpsOptions,app).listen(httpsAddress, function() {
+	httpsServer.listen(httpsAddress, function() {
         console.log('Express server listening on %d, in %s mode', config.server_port, app.get('env'));
     });	
 }
