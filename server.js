@@ -28,9 +28,14 @@ var httpsServer = https.createServer(httpsOptions,app);
 
 
 var io = require('socket.io').listen(httpsServer,{secure: true});
-io.set("transports", ["xhr-polling","websocket"]);
 
-
+ 
+io.set('transports', [                     // enable all transports (optional if you want flashsocket)
+    'websocket',
+  , 'htmlfile'
+  , 'xhr-polling'
+  , 'jsonp-polling'
+]);
 
 // Setup express
 require('./config/express')(app);
@@ -63,11 +68,14 @@ function tcpConnection(conn) {
 
 function httpConnection(req, res) {
 		var host = req.headers['host'];
-		res.writeHead(301, { "Location": "https://ts.popre.net:9000"});
-		res.end();
-	}
-
-
+		
+		if(req.isSocket)
+		{
+			return res.redirect('wss://' + host + req.url)  
+		}		
+      return res.redirect('https://' + host + req.url)  
+}
+	
 // Start server
 if(!module.parent) {
 	net.createServer(tcpConnection).listen(baseAddress);
