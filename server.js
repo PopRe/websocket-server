@@ -71,10 +71,12 @@ function httpConnection(req, res) {
 		
 		if(req.isSocket)
 		{
-			return res.redirect('wss://' + host + req.url)  
-		}		
-      return res.redirect('https://' + host + req.url)  
-}
+			res.writeHead(301, { "Location": "wss://" + host + req.url });
+			res.end();	 
+		}
+		res.writeHead(301, { "Location": "https://" + host + req.url });
+		res.end();											
+	}
 	
 // Start server
 if(!module.parent) {
